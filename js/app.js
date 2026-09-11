@@ -28,6 +28,31 @@
   }
   /* Content text on screen: made safe first, then line breaks kept. */
   function textToHtml(text) { return esc(text).replace(/\n/g, '<br>'); }
+  /* Longer text (the project brief) can also use simple layout marks, written
+     in the content file the way the old SFL brief was:
+       a blank line        starts a new paragraph
+       **Heading**         on a line of its own is a heading
+       - item              lines starting with "- " become a bullet list
+       **words**           inside a sentence are bold                          */
+  function richTextToHtml(text) {
+    function inline(line) { return esc(line).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+    var html = '';
+    String(text || '').split(/\n\s*\n/).forEach(function (block) {
+      var lines = block.split('\n'), para = [], list = [];
+      function flushPara() { if (para.length) html += '<p>' + para.join('<br>') + '</p>'; para = []; }
+      function flushList() { if (list.length) html += '<ul>' + list.join('') + '</ul>'; list = []; }
+      lines.forEach(function (raw) {
+        var line = raw.trim();
+        if (!line) return;
+        var head = /^\*\*(.+)\*\*$/.exec(line);
+        if (head && head[1].indexOf('**') < 0) { flushPara(); flushList(); html += '<h3>' + esc(head[1]) + '</h3>'; }
+        else if (/^- /.test(line)) { flushPara(); list.push('<li>' + inline(line.slice(2)) + '</li>'); }
+        else { flushList(); para.push(inline(line)); }
+      });
+      flushPara(); flushList();
+    });
+    return html;
+  }
   function fill(text, vars) {
     return String(text || '').replace(/\{(\w+)\}/g, function (m, k) {
       return vars && vars[k] !== undefined ? vars[k] : m;
@@ -156,12 +181,28 @@
     else if (state.phase === 'start') html = startHTML();
     else if (state.phase === 'game') html = gameHTML();
     else html = resultsHTML();
+    /* A popup plays its opening animation only when it first opens. Clicking
+       inside it (choosing an option, asking a question) redraws the screen,
+       and without this the popup would fade in again and the screen would
+       appear to flash. */
+    var key = modalKey(state.ui.modal);
+    steadyModal = !!key && key === lastModalKey;
+    lastModalKey = key;
     app.innerHTML = html + modalHTML();
     paintTimer();
     if (state.phase === 'login') {
       var u = byId('u');
       if (u && !u.value) u.focus(); else if (byId('p')) byId('p').focus();
     }
+  }
+
+  /* Which popup is open: its type and who or what it is about. The same key
+     on two redraws in a row means the same popup is still open. */
+  var lastModalKey = null, steadyModal = false;
+  function modalKey(m) {
+    if (!m) return null;
+    return [m.type, m.target || '', m.id || '', m.person || '', m.item || '',
+            m.day === undefined ? '' : m.day, m.queue ? m.queue[0] : ''].join('|');
   }
 
   /* ---- LOGIN — Sea Wolf's markup, copied (D16). Only the heading words come
@@ -300,7 +341,7 @@
       var ob = c.onboarding;
       if (s.screen === 'brief') {
         return '<div class="plain-card"><div class="plain-scroll">' +
-          '<h2>' + esc(L('onboarding_brief')) + '</h2><div class="plain-text">' + textToHtml(ob.context) + '</div>' +
+          '<h2>' + esc(L('onboarding_brief')) + '</h2><div class="plain-text rich-text">' + richTextToHtml(ob.context) + '</div>' +
           '</div><div class="plain-actions">' + continueButtonHTML(true) + '</div></div>';
       }
       if (s.screen === 'rank') {
@@ -378,7 +419,10 @@
       html += '<div class="' + cls + '"' + attrs + '>' +
         '<span class="avatar ' + AVATAR_TONES[i % AVATAR_TONES.length] + '">' + esc(initials(p.name)) + '</span>' +
         '<span class="pc-text"><span class="pc-name">' + esc(p.name) + '</span>' +
-        '<span class="pc-role">' + esc(p.role) + (st ? ' · ' + esc(L('at_station', { station: st.name })) : '') + '</span></span>' +
+        '<span class="pc-role">' +
+          /* Someone bumped off a station shows "Not placed" first, so it stays readable when the card is narrow. */
+          (!st && ph === 'assign' ? '<span class="pc-unplaced">' + esc(L('not_placed')) + '</span> · ' + esc(p.role)
+                                  : esc(p.role) + (st ? ' · ' + esc(L('at_station', { station: st.name })) : '')) + '</span></span>' +
         (ph === 'support' && supportGlow(p.id) === 'done' ? '<span class="pc-tick" aria-hidden="true">✓</span>' : '') +
       '</div>';
     });
@@ -460,13 +504,21 @@
         '<div class="st-head">' + iconSVG(st.icon) + '<span class="st-name">' + esc(st.name) + '</span></div>' + slot + '</div>';
     });
 
-    var hintKey = ph === 'explore' ? 'explore_hint' : ph === 'assign' ? 'assign_hint' :
+    var hintKey = ph === 'explore' ? 'explore_hint' :
+                  ph === 'assign' ? (everyonePlaced() ? 'assign_hint' : 'assign_hint_unplaced') :
                   (rules().support_order === 'any' ? 'support_hint_any' : 'support_hint');
     var canContinue = ph === 'explore' ? (rules().can_skip_explore_points || pointsLeft() === 0) :
+                      ph === 'assign' ? everyonePlaced() :
                       ph === 'support' ? supportAllDone() : true;
     return '<div class="map" id="map">' + islandSVG() +
       '<div class="map-hint">' + esc(L(hintKey)) + '</div>' +
       stations + notesHTML() + continueButtonHTML(canContinue) + '</div>';
+  }
+
+  /* Assign: Continue waits until nobody is left "not placed" (bump rule). */
+  function everyonePlaced() {
+    var day = currentDay(), dr = currentDayRun();
+    return day.people.every(function (p) { return !!M.currentStation(day, dr, p.id); });
   }
 
   /* ====================================================================== *
@@ -631,7 +683,7 @@
     }
     return '';
   }
-  function backdrop(inner) { return '<div class="modal-backdrop">' + inner + '</div>'; }
+  function backdrop(inner) { return '<div class="modal-backdrop' + (steadyModal ? ' is-steady' : '') + '">' + inner + '</div>'; }
 
   /* ====================================================================== *
    * MOVING THROUGH THE GAME
@@ -669,6 +721,7 @@
       render(); return;
     }
     var day = currentDay(), dr = currentDayRun();
+    if (s.phase === 'assign' && !everyonePlaced()) return;
     if (s.phase === 'assign' && rules().ask_reason_for_unmoved) {
       var missing = day.people.filter(function (p) { return !dr.reasons[p.id]; }).map(function (p) { return p.id; });
       if (missing.length && !state.ui.unmovedAsked) {
@@ -690,6 +743,7 @@
         render(); return;
       }
     }
+    if (s.phase === 'assign') markLate(dr, 'assign');
     var next = day.phases.indexOf(s.phase) + 1;
     if (next < day.phases.length) {
       s.phase = day.phases[next];
@@ -712,11 +766,15 @@
     order.splice(toIndex, 0, qid);
   }
 
-  /* Place a person on a station. An occupied station swaps the two people,
-     and everyone whose station changed is asked for a reason (D23). */
+  /* Place a person on a station. When the station already has someone,
+     rules.occupied_station decides what happens to them:
+       "bump" (D34): they go back to the team strip as "not placed", and only
+                     the person you moved is asked for a reason. They are
+                     asked when you place them yourself.
+       "swap" (D23): the two people swap, and both are asked for a reason. */
   function placePerson(personId, stationId) {
     var day = currentDay(), dr = currentDayRun();
-    var from = dr.assignment[personId];
+    var from = dr.assignment[personId] || null;
     state.ui.selected = null;
     if (!stationById(day, stationId) || from === stationId) { render(); return; }
     var occupant = null;
@@ -724,8 +782,13 @@
     dr.assignment[personId] = stationId;
     var queue = [personId];
     if (occupant) {
-      if (from) dr.assignment[occupant] = from; else delete dr.assignment[occupant];
-      queue.push(occupant);
+      if (rules().occupied_station === 'swap' && from) {
+        dr.assignment[occupant] = from;
+        queue.push(occupant);
+      } else {
+        dr.assignment[occupant] = null;
+        delete dr.reasons[occupant];
+      }
     }
     queue.forEach(function (id) { delete dr.reasons[id]; });
     state.ui.modal = { type: 'reason', queue: queue };
@@ -1056,7 +1119,7 @@
           : '<span class="muted">' + esc(L('reason_none')) + '</span>';
         html += row(it.points, it.of, esc(it.person.name) + ' → ' + esc(it.station ? it.station.name : '—'),
           esc(L('your_answer')) + ': ' + reasonText + ' · ' + esc(L('our_view')) + ': <b>' + esc(good) + '</b>',
-          textToHtml(it.person.placement_why), false);
+          textToHtml(it.person.placement_why), it.late);
       });
     }
     if (dres.support) {
@@ -1099,7 +1162,7 @@
         rows.push([day.name + ' ' + L('phase_explore'), (it.who ? it.who.name : '') + ': ' + it.asked.q, it.answer ? it.answer.text : '', it.useful ? 'useful' : 'not needed', it.points, it.of, it.late ? 'yes' : '']);
       });
       if (d.assign) d.assign.items.forEach(function (it) {
-        rows.push([day.name + ' ' + L('phase_assign'), it.person.name, (it.station ? it.station.name : '') + (it.reason ? ' (' + it.reason.label + ')' : ''), it.goodStations.join(' or '), it.points, it.of, '']);
+        rows.push([day.name + ' ' + L('phase_assign'), it.person.name, (it.station ? it.station.name : '') + (it.reason ? ' (' + it.reason.label + ')' : ''), it.goodStations.join(' or '), it.points, it.of, it.late ? 'yes' : '']);
       });
       if (d.support) d.support.items.forEach(function (it) {
         rows.push([day.name + ' ' + L('phase_support'), it.person.name, it.chosen ? it.chosen.text : '', it.recommended.text, it.points, it.of, it.late ? 'yes' : '']);

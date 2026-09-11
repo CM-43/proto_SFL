@@ -70,6 +70,9 @@ window.SFL_CONTENT = {
     reflect_idk_option_id: "idk",      // which option id means "I don't know"
 
     support_order: "fixed",            // UNCONFIRMED (SQ23). "fixed" = one person glows at a time, in the order below; "any" = all glow
+    occupied_station: "bump",          // UNCONFIRMED (SQ17). What happens when you drop someone onto a station that already has a person.
+                                       // "bump" = the person already there goes back to the team strip as "not placed" and must be placed again (only the person you moved is asked why);
+                                       // "swap" = the two people swap stations and both are asked why
     confirm_before_support: true,      // REPORTED. Ask "Read X's message?" before showing it
     show_support_outcomes: true,       // UNCONFIRMED (SQ13). Show what happened after each Support answer
     ask_reason_for_unmoved: false,     // UNCONFIRMED (SQ6). true = also ask a reason for people left where they started
@@ -151,6 +154,8 @@ window.SFL_CONTENT = {
     explore_points: "Explore points",
     explore_hint: "Click a team member or a work station to ask a question. Each question costs 1 point.",
     assign_hint: "Drag team members onto work stations, or click a person and then a station.",
+    assign_hint_unplaced: "Someone is not placed. Place everyone on a work station before you continue.",
+    not_placed: "Not placed",
     support_hint: "Click the glowing team member to read their message.",
     support_hint_any: "Click a glowing team member to read their message.",
     ask_title: "Ask {name}",
@@ -211,7 +216,9 @@ window.SFL_CONTENT = {
      All answers are shown whatever the order (REPORTED).
      --------------------------------------------------------------------- */
   onboarding: {
-    context: "Kereni Island Restoration Project\n\nKereni is a small island whose hillsides have lost much of their native plant cover. Without roots to hold it, soil washes into the stream and the bay whenever it rains, clouding the water and threatening a seabird colony that nests on the northern cliffs.\n\nYou are leading a team of four for the next three days, before the rainy season begins. The aim is to protect the most damaged slopes and keep the colony safe.\n\nStakeholders: the island council, which funds the project; the fishing village on the bay, which depends on clear water and beach access; and a small tour operator who runs boat trips to the colony.",
+    // The brief can use layout marks: a blank line (\n\n) starts a paragraph, **Heading** on its own line is a heading,
+    // and a line starting with "- " is a bullet point. See EDITING-GUIDE.md section 4.
+    context: "**Kereni Island Restoration Project**\n\n**Background**\nKereni is a small island of steep hills, with a fishing village on its only bay. Years of grazing stripped much of the native plant cover from the hillsides, and it has never grown back. Without roots to hold it, soil washes into the stream and the bay whenever it rains, clouding the water and threatening a seabird colony that nests on the northern cliffs. Visitors come from the mainland to see the birds, and the village has watched the bay change with growing concern.\n\n**Your role**\nYou are leading a team of four for the next three days, before the rainy season begins. The work is spread across several stations on the island, and each day brings new tasks.\n\n**The aim**\n- Protect the most damaged slopes before the rains\n- Keep the seabird colony safe\n\n**Stakeholders**\n- The island council, which funds the project\n- The fishing village on the bay, which depends on clear water and beach access\n- A small tour operator, who runs boat trips to the colony",
     rank_prompt: "Before you start, which questions would you ask first?",
     questions: [
       { id: "goal",
@@ -333,15 +340,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Thank Tom for flagging it, then bring him and whoever is working on the slopes together for a few minutes to decide whether today's work should change.",
-              outcome: "Tom walks the slope team through the readings and they adjust the day's plan. Tom says it's good to see the data actually used.",
+              outcome: "Tom brings his laptop up to the slope and walks the team through the readings. There are a few questions about whether one sensor can be trusted, and it takes longer than planned, but by mid-morning the planting has moved further down the slope. Later that day Tom posts a second set of readings in the team chat, this time with a short note on what they might mean for tomorrow.",
               why: "Acts quickly and puts the evidence in front of the people who can act on it, with Tom involved." },
             { id: "b", tier: "acceptable",
               text: "Tell Tom you'll review the readings yourself and pass anything important on to the slope team.",
-              outcome: "You pass a summary on an hour later. Tom is glad it was picked up, but would have liked to explain it himself.",
+              outcome: "You read through the readings and send the slope team a short summary about an hour later. They make a small change to the afternoon's work. When you mention it to Tom, he nods and asks whether anyone had questions about how the readings were taken. Nobody had. He goes back to the stream and carries on logging.",
               why: "The information gets through, but more slowly and without Tom." },
             { id: "c", tier: "weak",
               text: "Tell Tom that mud after rain is normal, and the slope team shouldn't be distracted.",
-              outcome: "Tom stops posting updates for the rest of the day.",
+              outcome: "Tom says \"OK\" and heads back down to the stream. The slope work carries on as planned. The afternoon's readings are saved in the shared folder as usual, but nothing more appears from Tom in the team chat.",
               why: "Dismisses a team member's evidence without looking at it." }
           ] },
 
@@ -350,15 +357,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Ask Maya what switching would change, then get her and Priya together briefly to agree before more planting is done.",
-              outcome: "Maya and Priya talk it through and agree to start low and return to the top later. Maya says she's relieved she was listened to.",
+              outcome: "Maya and Priya meet at the foot of the slope and go over the plan with Tom's readings open between them. They agree to start low today and come back to the top once the weather is clearer. By the afternoon Maya is sketching a revised planting order on the back of the site map, and she stays behind at the end of the day to finish it.",
               why: "Uses the specialist's evidence and brings in the person whose plan it is, without a long delay." },
             { id: "b", tier: "acceptable",
               text: "Let Maya switch to the lower slope today, and ask her to send Priya a short note explaining why.",
-              outcome: "Maya switches. Priya reads the note later and is a little surprised, but agrees it made sense.",
+              outcome: "Maya moves the planting to the lower slope and sends Priya a short note. Priya replies later in the day that it seems sensible, but asks to be included next time the plan changes. Maya reads the reply twice before putting her phone away, then works through the afternoon on the lower slope and logs the day's planting without further comment.",
               why: "Acts on the best information and keeps Priya informed, though she isn't part of the decision." },
             { id: "c", tier: "weak",
               text: "Tell Maya the plan was agreed and must be followed; changing it now would confuse everyone.",
-              outcome: "Maya carries on at the top, visibly frustrated that her expertise was ignored.",
+              outcome: "Maya carries on planting at the top of the slope as planned. She works steadily but says little to the rest of the team, and when Tom walks past with the latest readings she glances at them and turns back to her trowel. At the end of the day her log entry is a single line.",
               why: "Overly forceful: it ignores the specialist's evidence." }
           ],
           when_mismatched: {
@@ -366,15 +373,15 @@ window.SFL_CONTENT = {
             options: [
               { id: "a", tier: "recommended",
                 text: "Thank Maya, ask her to brief whoever is on the slopes about the risk right away, and agree to look again at who works where.",
-                outcome: "Maya passes on her advice and the planting moves lower. She's glad to help, though she still wishes she were on the slopes.",
+                outcome: "Maya walks over to the slope team and explains the risk, pointing out where the soil is thinnest. They agree to move the day's planting lower down. Maya then returns to {station}, where she spends the rest of the afternoon on the work there, stopping now and then to look up towards the slopes.",
                 why: "Gets her expertise to where it's needed now and takes her concern about her own role seriously." },
               { id: "b", tier: "acceptable",
                 text: "Ask Maya to write up her concern so you can take it to the slope team yourself.",
-                outcome: "The message gets through later in the day. Maya feels heard but sidelined.",
+                outcome: "Maya writes up her concern and hands it to you. You pass it to the slope team later in the day, and they make a change to the planting. When you tell Maya, she says \"Right\" and goes back to {station}. She does not mention the slopes again that day.",
                 why: "The concern is passed on, but slowly and without her." },
               { id: "c", tier: "weak",
                 text: "Ask Maya to focus on her own station and leave the slopes to the people working there.",
-                outcome: "Maya goes quiet for the rest of the day.",
+                outcome: "Maya goes back to {station}. For the rest of the day she does what is asked of her there and nothing more, and she does not join the team for the end-of-day catch-up.",
                 why: "Ignores a real risk and the person raising it." }
             ]
           } },
@@ -384,19 +391,19 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Help Priya tell the village honestly what is known and what isn't, and when they will get an update once Tom has checked the sensors again.",
-              outcome: "The village appreciates the honesty and agrees to wait for tomorrow's update. Priya is pleased with how it went.",
+              outcome: "You and Priya draft a short message for the village: what the readings show so far, what is still unknown, and when the next update will come. She reads it out at the harbour that evening. There are a few questions, which she answers one by one, and afterwards she stays on to chat with some of the fishermen about tomorrow's update.",
               why: "Honest, timely and gives the village something concrete to expect." },
             { id: "b", tier: "acceptable",
               text: "Ask Priya to tell the village there are no plans to close the beach, and that the team will confirm tomorrow.",
-              outcome: "The village is reassured for now, though a few people ask how the team can be so sure. Priya feels a little exposed.",
+              outcome: "Priya tells the village there are no plans to close the beach and that the team will confirm tomorrow. Most people accept this, though a couple of the older fishermen ask how the team can be sure when the readings are not finished. Priya gives the same answer again. On the way back she asks you what she should say if the water does turn muddy.",
               why: "Responds quickly, but sounds more certain than the team is." },
             { id: "c", tier: "weak",
               text: "Ask Priya not to reply until the team has a full analysis of the water, so that nothing wrong is said.",
-              outcome: "With no answer, rumours spread in the village. Priya takes several angry calls.",
+              outcome: "Priya holds off replying. By evening the story in the village has grown: some people are saying the beach will close for the whole season. Priya's phone rings several times during dinner, and she takes each call outside. The next morning she asks you whether anyone has an update for the village yet.",
               why: "Delays too long: silence makes the situation worse." },
             { id: "d", tier: "weak",
               text: "Tell Priya to reassure the village that the water is fine and there is nothing to worry about.",
-              outcome: "The village relaxes, until muddy water appears in the bay after light rain. Priya is left to explain.",
+              outcome: "Priya tells the village the water is fine. The next afternoon a light shower turns the bay brown near the stream mouth, and people start sending photos of it to one another. Priya is stopped at the harbour and asked about it, and when she finally gets back to the base she goes straight to the sensor readings.",
               why: "Promises something the team does not know." }
           ] },
 
@@ -405,19 +412,19 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Get Daniel together with the slope team to mark which part of the route is too close to the nests, and move only that section.",
-              outcome: "They agree a short detour around the cliffs. Planting loses a little time, and Daniel thanks you for involving him.",
+              outcome: "Daniel and the slope team walk the route together and mark the stretch that passes closest to the nests. They agree a short detour around the cliffs, which costs the planting a little time. Daniel spends the afternoon setting up markers along the new path and, at the end of the day, shows you the nest count, which has held steady.",
               why: "Deals with the real risk, involves both sides, and keeps the work moving." },
             { id: "b", tier: "acceptable",
               text: "Keep the route for today, but set quiet hours and a marked buffer, and review it with Daniel tomorrow morning.",
-              outcome: "Work continues with a buffer in place. Daniel isn't fully satisfied, but agrees to try it.",
+              outcome: "The route stays as it is for today, with quiet hours and a marked buffer below the cliffs. Daniel checks the buffer twice during the afternoon and notes a few birds lifting off when people pass. He adds these to his log and asks to go over the route again first thing tomorrow.",
               why: "Reduces the risk and keeps progress, but leaves Daniel's concern partly open." },
             { id: "c", tier: "weak",
               text: "Stop all planting near the cliffs until Daniel has completed a full survey of the colony.",
-              outcome: "Planting stops for the day. The slope team is frustrated to lose the dry weather. Daniel is pleased his concern was taken so seriously.",
+              outcome: "Planting near the cliffs stops for the day. The slope team packs up early, and some of them grumble about losing the dry weather. Daniel spends the whole afternoon on his survey, working through the colony nest by nest, and comes back at the end of the day with pages of notes, offering to walk you through them.",
               why: "Delays action too much: a full survey was not needed to fix one section of route." },
             { id: "d", tier: "weak",
               text: "Tell Daniel the route has been agreed and the birds will get used to it.",
-              outcome: "Daniel says nothing more, but spends the afternoon visibly upset.",
+              outcome: "Daniel does not argue. He goes back to the cliffs and spends the afternoon watching the nests from further away than usual. Each time the slope team passes below, he writes down the time in his notebook. He skips the end-of-day catch-up and sends his count by message instead.",
               why: "Dismisses the specialist on the one topic he knows best." }
           ] }
       ],
@@ -428,14 +435,14 @@ window.SFL_CONTENT = {
         { id: "d1-r-tom", person: "tom",
           prompt: "How do you think Tom feels about the way his readings were handled today?",
           truth_from_support: { support: "d1-tom", recommended: "positive", acceptable: "neutral", weak: "negative" },
-          why: "Tom's reaction followed your response to his readings: used with him involved (positive), passed on without him (neutral), dismissed (negative)." },
+          why: "Tom's reaction followed your response to his readings. Involved, he went on to share more readings without being asked (positive). Passed on without him, he asked whether anyone had questions about the readings, and nobody had (neutral). Dismissed, he stopped posting in the team chat (negative)." },
         { id: "d1-r-maya", person: "maya",
           prompt: "How do you think Maya experienced today?",
           truth_from_support: { support: "d1-maya", recommended: "positive", acceptable: "neutral", weak: "negative" },
-          why: "Maya was listened to (positive), partly listened to (neutral), or overruled (negative), depending on your response.",
+          why: "Listened to and agreeing a plan with Priya, Maya stayed late to finish the new planting order (positive). Switching on her own, she got Priya's request to be included next time and re-read it (neutral). Overruled, she said little and wrote a one-line log (negative).",
           when_mismatched: {
             truth_from_support: { support: "d1-maya", recommended: "neutral", acceptable: "negative", weak: "negative" },
-            why: "Maya spent the day away from the work she is best at. Even when her advice was used, she still wished she were on the slopes."
+            why: "Maya spent the day away from the work she is best at. Even when her advice was used, she kept looking up towards the slopes (neutral). Sidelined or sent back to her station, she dropped the subject and kept to herself (negative)."
           } },
         { id: "d1-r-priya", person: "priya",
           prompt: "How confident do you think Priya feels after today's contact with the village?",
@@ -446,12 +453,12 @@ window.SFL_CONTENT = {
             { id: "idk",      label: "I don't know" }
           ],
           truth_from_support: { support: "d1-priya", recommended: "positive", acceptable: "neutral", weak: "negative" },
-          why: "Honesty went down well (confident); sounding too sure left her exposed (unsure); silence or false reassurance backfired (worried)." },
+          why: "An honest update brought questions she could answer, and she stayed on to chat afterwards (confident). Sounding too sure brought doubts she could not answer, and she asked you what to say if the water turned (unsure). Silence or false reassurance backfired: calls through dinner, or photos of a brown bay (worried)." },
         { id: "d1-r-daniel", person: "daniel",
           prompt: "How do you think Daniel experienced today?",
           // by_option overrides the tier for one specific option: stopping all planting (c) was weak, but Daniel himself was pleased.
           truth_from_support: { support: "d1-daniel", recommended: "positive", acceptable: "neutral", weak: "negative", by_option: { c: "positive" } },
-          why: "Daniel's day followed how his concern was handled. Stopping all planting was a weak choice for the project, yet Daniel himself felt taken seriously (positive); being told the birds would get used to it upset him (negative)." }
+          why: "Daniel's day followed how his concern was handled. The agreed detour ended with a steady nest count he showed you (positive); the buffer he checked twice and wanted to review was only a partial answer (neutral). Stopping all planting was a weak choice for the project, yet Daniel himself came back with pages of notes to share (positive). Being told the birds would get used to it left him keeping his distance and skipping the catch-up (negative)." }
       ]
     },
 
@@ -537,15 +544,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Help Priya ask Maya for the soil results and Tom for his barrier estimate, and suggest she prepares the seedlings she is already sure of in the meantime.",
-              outcome: "The soil results arrive within the hour and Tom's estimate follows later. Priya gets going straight away on the safe choices.",
+              outcome: "Maya sends over the soil results within the hour, and Tom's barrier estimate follows in the afternoon. In the meantime Priya starts on the seedlings she is already sure of, lining up trays for the first areas of her layout. By the end of the day the nursery tables are full, and she has written tomorrow's planting list on the board.",
               why: "Goes straight to the people who hold the missing information and keeps work moving meanwhile." },
             { id: "b", tier: "acceptable",
               text: "Ask Priya to make her best estimate from the map, and adjust once the missing information arrives.",
-              outcome: "Priya starts on her estimate. She has to redo part of it later, but the work keeps moving.",
+              outcome: "Priya makes her best estimate from the map and starts preparing seedlings. When the soil results arrive in the afternoon, part of her selection turns out to be wrong for the wetter areas, and she moves a row of trays back to the shelves. She finishes the day with most of the work done and a list of changes for the morning.",
               why: "Keeps progress going, at the cost of some rework." },
             { id: "c", tier: "weak",
               text: "Tell Priya to wait until all three pieces of information are ready before preparing anything.",
-              outcome: "Priya waits most of the morning with little to do.",
+              outcome: "Priya waits for the missing information. She spends most of the morning tidying the nursery and re-checking the map she already has. The soil results arrive just after lunch, and she starts the seedlings then, working late to catch up. She is the last to leave the base.",
               why: "Delays action when part of the work could safely start." }
           ] },
 
@@ -554,15 +561,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Ask Tom to give Priya a rough estimate now, saying clearly how uncertain it is, then go back to the barriers and refine it at the end of the day.",
-              outcome: "Tom sends a rough figure within minutes. Priya can plan with it, and Tom goes back to building, relieved.",
+              outcome: "Tom sends Priya a rough figure within a few minutes, with a note saying it could change by an area or two. Priya replies that it is enough to plan with. Tom puts his phone away and goes back to {station}, and by the end of the day he has refined the figure and sent it on without being reminded.",
               why: "Unblocks Priya quickly without piling pressure on Tom." },
             { id: "b", tier: "acceptable",
               text: "Ask Maya to work out the estimate from yesterday's data, so Tom can concentrate on building.",
-              outcome: "Maya produces a figure, though it takes her away from her own work. Tom is grateful but a little embarrassed.",
+              outcome: "Maya takes the estimate on and works it out from yesterday's data, which takes up a good part of her morning. Tom thanks her in the team chat. At lunch he apologises to her again, then checks her figure against his own plans, finds it close enough, and says nothing more about it.",
               why: "Solves the block, but moves the load onto someone else." },
             { id: "c", tier: "weak",
               text: "Remind Tom firmly that missed promises hold up the whole team, and tell him it must not happen again.",
-              outcome: "Tom sends the estimate, but stays tense and quiet for the rest of the day.",
+              outcome: "Tom sends the estimate straight away. For the rest of the day he works on his own, keeps his answers short when anyone asks him something, and leaves as soon as the day's work is done.",
               why: "Overly forceful: blame does not help the team move on." }
           ],
           when_mismatched: {
@@ -574,15 +581,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Suggest Maya sends Daniel a short, friendly message saying the file didn't arrive and asking him to resend it, and offer to step in if it's still missing this afternoon.",
-              outcome: "Daniel finds the file stuck on his phone and resends it. Maya's summary is complete.",
+              outcome: "Maya sends Daniel a short message saying the file never arrived. Soon after, he finds it stuck on his phone and sends it again. Maya adds the counts, checks the totals, and sends the council summary on time with every station's readings included. Before leaving, she pins a copy on the noticeboard at the base.",
               why: "Direct but friendly, with support ready if it doesn't work." },
             { id: "b", tier: "acceptable",
               text: "Tell Maya to send the summary with a note that the wildlife counts will follow tomorrow.",
-              outcome: "The council accepts the note. Maya is fine with it, though the summary feels incomplete to her.",
+              outcome: "Maya sends the summary with a note that the wildlife counts will follow tomorrow. The council replies with a short acknowledgement. Maya reads through the summary once more before closing her laptop, pausing on the empty wildlife section.",
               why: "Meets the deadline honestly, but leaves the gap." },
             { id: "c", tier: "weak",
               text: "Tell Maya the wildlife counts matter less than the soil data, so she can leave them out.",
-              outcome: "The summary goes out without the counts. Maya avoids the awkward conversation, but Daniel is annoyed to see his work missing.",
+              outcome: "The summary goes out without the wildlife counts, and Maya does not have to message Daniel. The next morning Daniel reads the summary on the noticeboard, looks for his section, and asks around who decided to leave it out. Maya stays busy at her desk while he asks.",
               why: "Ignores a team member's work to avoid a conversation." }
           ],
           when_mismatched: {
@@ -594,15 +601,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Reassure Daniel that a stuck file is an easy mistake, make sure his counts are in the record, and suggest a simple check that files have arrived.",
-              outcome: "Daniel relaxes and sets up a quick 'received' reply with Maya for future files.",
+              outcome: "Daniel makes sure his counts are added to the record, then sits down with Maya and agrees that whoever receives a file will reply \"received\". He heads back out on his survey route for the afternoon, joking that his phone is now banned from fieldwork, and before leaving sends his new counts and waits for Maya's reply.",
               why: "Supports him and fixes the cause, so it doesn't happen again." },
             { id: "b", tier: "acceptable",
               text: "Offer to tell the council that the delay was a technical problem, not a problem with the survey.",
-              outcome: "Daniel thanks you, though he'd rather the team had a way to catch this next time.",
+              outcome: "You let the council know the delay was a technical problem with the file, not with the survey. Daniel says thanks. Later he asks Maya, half to himself, how anyone would even know if a file went missing again. Nobody has an answer, and he goes back out on his route.",
               why: "Protects his reputation, but doesn't prevent a repeat." },
             { id: "c", tier: "weak",
               text: "Tell Daniel he should have checked that his files were sent, and to be more careful.",
-              outcome: "Daniel apologises, but is clearly upset for the rest of the day.",
+              outcome: "Daniel apologises and says he will check more carefully. He spends the afternoon on his survey route but comes back early, re-sends the week's files one by one, and asks Maya twice whether each has arrived. He hardly speaks at the end-of-day catch-up.",
               why: "Blames rather than supports, and fixes nothing." }
           ] }
       ],
@@ -615,7 +622,7 @@ window.SFL_CONTENT = {
         { id: "d2-r-tom", person: "tom",
           prompt: "How do you think Tom feels about today?",
           truth_from_support: { support: "d2-tom", recommended: "positive", acceptable: "neutral", weak: "negative" },
-          why: "Tom was relieved (positive), grateful but embarrassed (neutral), or tense after being blamed (negative).",
+          why: "Tom unblocked Priya quickly and followed up without being reminded (positive); he thanked Maya but apologised to her again at lunch (neutral); after being blamed he kept to himself and left as soon as he could (negative).",
           when_mismatched: {
             truth_from_support: { support: "d2-tom", recommended: "neutral", acceptable: "negative", weak: "negative" },
             why: "Tom spent the day away from the barriers he was supposed to be planning, so even a good fix left him only partly satisfied."
@@ -623,7 +630,7 @@ window.SFL_CONTENT = {
         { id: "d2-r-maya", person: "maya",
           prompt: "How do you think Maya experienced today?",
           truth_from_support: { support: "d2-maya", recommended: "positive", acceptable: "neutral", weak: "neutral" },
-          why: "A complete summary left Maya pleased. Sending it with a gap, or leaving the counts out, let her avoid the conversation but left her work incomplete: neutral either way.",
+          why: "A complete summary, which Maya pinned on the noticeboard, was a good result for her (positive). Sending it with a gap, or leaving the counts out, let her avoid the conversation but left her work incomplete: neutral either way.",
           when_mismatched: {
             truth_from_support: { support: "d2-maya", recommended: "neutral", acceptable: "neutral", weak: "negative" },
             why: "Maya was helping with the summary from a station that did not suit her. A good fix left her neutral; leaving the counts out made things worse."
@@ -631,7 +638,7 @@ window.SFL_CONTENT = {
         { id: "d2-r-daniel", person: "daniel",
           prompt: "How do you think Daniel feels about how the missing counts were handled?",
           truth_from_support: { support: "d2-daniel", recommended: "positive", acceptable: "neutral", weak: "negative" },
-          why: "Daniel relaxed when supported with a fix (positive), was thankful but uneasy when only covered for (neutral), and upset when blamed (negative)." },
+          why: "With a simple fix in place, Daniel went back to his route joking about his phone (positive). Only covered for, he wondered aloud how anyone would know next time (neutral). Blamed, he re-sent every file, kept checking, and barely spoke (negative)." },
         { id: "d2-r-daniel-barriers", person: "daniel",
           prompt: "How does Daniel feel about the new erosion barriers?",
           unknowable: true,
@@ -721,15 +728,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Suggest they report what the counts show so far, state clearly what one week can't prove, and recommend follow-up counts.",
-              outcome: "Both agree to the wording. Daniel is happy the good news is in, and Maya is happy it's honest.",
+              outcome: "Daniel and Maya sit down with the counts and agree on wording they can both put their names to: what the week showed, what it cannot yet prove, and a recommendation for follow-up counts. Daniel reads the final paragraph aloud to the team at lunch, then adds a chart of the nest numbers before sending the report.",
               why: "Resolves the disagreement with an answer both can support, and keeps the report accurate." },
             { id: "b", tier: "acceptable",
               text: "Ask Daniel to use Maya's more cautious wording, since the council may make funding decisions based on it.",
-              outcome: "Daniel agrees, though he feels his results are being undersold.",
+              outcome: "Daniel rewrites the section using Maya's more cautious wording and finishes the report on time. When he hands it over, he points out how strong this week's counts were, and asks whether there is anywhere else in the report they could be mentioned.",
               why: "Accurate, but settles the disagreement for one side." },
             { id: "c", tier: "weak",
               text: "Decide for them: Daniel owns the report, so his wording stands.",
-              outcome: "Maya drops the argument but feels overruled. Daniel is pleased to have his wording.",
+              outcome: "Daniel's wording stays: the report says the colony is safe. Maya stops arguing and goes back to her own work. Daniel finishes the report early, reads it through, and sends it to the council with a short covering note about how well the colony has done this week.",
               why: "Overly forceful, and puts an overstated claim in front of the council." }
           ],
           when_mismatched: {
@@ -737,15 +744,15 @@ window.SFL_CONTENT = {
             options: [
               { id: "a", tier: "recommended",
                 text: "Encourage Daniel to share his evidence with whoever is writing the report, and ask them to include what one week can't prove.",
-                outcome: "The wording is corrected. Daniel is glad, though he would have liked to write that section himself.",
+                outcome: "Daniel takes his counts over to whoever is writing the report, and together they change the sentence to say what one week can and cannot show. Daniel returns to {station} for the afternoon. When the report goes out, he reads the colony section closely and makes a note in the margin of his own copy.",
                 why: "Gets the evidence into the report and values Daniel's view." },
               { id: "b", tier: "acceptable",
                 text: "Offer to pass Daniel's concern on to the report writer yourself.",
-                outcome: "The wording is softened. Daniel feels his point got through second-hand.",
+                outcome: "You pass Daniel's concern on, and the wording in the report is softened. Daniel is told about the change at the end of the day. He nods, asks which words were used, and goes back to packing up at {station}.",
                 why: "The concern is acted on, but without Daniel." },
               { id: "c", tier: "weak",
                 text: "Tell Daniel the report isn't his job today, and ask him to focus on his own station.",
-                outcome: "Daniel says nothing more, and the report goes out with the overstated claim.",
+                outcome: "Daniel goes back to {station} and does not raise the report again. It goes to the council saying the colony is safe. That evening he reads the sent copy, puts it down, and leaves the base without joining the others.",
                 why: "Ignores the person with the best evidence." }
             ]
           } },
@@ -755,15 +762,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Ask Daniel to take a short break from the report to give Priya the few figures she needs, then let Priya propose a trial route to the operator.",
-              outcome: "With the figures in hand, the operator agrees to a two-week trial route. Priya is delighted.",
+              outcome: "Daniel takes a short break from the report and gives Priya the latest nest counts. Priya takes them to the tour operator along with a map of a trial route that keeps boats further from the cliffs. After some back and forth, he agrees to try it for two weeks. Priya comes back to the base with the signed note and pins it to the board.",
               why: "A small, targeted request unblocks a stakeholder problem before it escalates." },
             { id: "b", tier: "acceptable",
               text: "Ask Priya to offer the operator a meeting with the council, so the issue is settled together.",
-              outcome: "The operator agrees to wait for the meeting. Priya is relieved, but the issue isn't settled.",
+              outcome: "Priya offers the tour operator a meeting with the council, and he agrees to hold off on any complaint until then. The routes stay as they are for now. Priya adds the meeting to the handover list and writes a reminder to bring the nest counts, with a question mark next to the date.",
               why: "Calms things down, but pushes the decision later." },
             { id: "c", tier: "weak",
               text: "Tell Priya to inform the operator that the new routes are final.",
-              outcome: "The operator files a complaint with the council. Priya feels she was left to take the heat.",
+              outcome: "Priya tells the tour operator the new routes are final. He leaves without agreeing, and by the afternoon the council has received his complaint. The council calls Priya to ask what happened, and she spends the rest of the day writing up her side of the conversation.",
               why: "Overly forceful with a stakeholder, and leaves Priya exposed." }
           ] },
 
@@ -772,15 +779,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Ask Tom which sensors are free, then quickly check with Priya and Maya which request matters most for the project's goal before deciding.",
-              outcome: "They agree to leave two for the trial and move one next month. Tom is glad not to be stuck in the middle.",
+              outcome: "Tom lists the sensors that are free, and you check quickly with Priya and Maya. They agree to leave two in place for the boat trial and move one to the seed area next month. Tom labels each sensor with where it is going, packs the rest, and hands over a tidy equipment list before the team leaves.",
               why: "Involves the people affected and decides against the project's goal." },
             { id: "b", tier: "acceptable",
               text: "Decide yourself: keep two sensors for the boat trial, since it protects the colony, and tell Maya why.",
-              outcome: "Tom sets them up. Maya is disappointed but understands. Tom simply follows the decision.",
+              outcome: "You decide to keep two sensors for the boat trial and tell Maya why. Maya accepts it, though she asks whether the seed area could have one later. Tom sets up the two sensors as asked, packs the rest, and writes \"as instructed\" at the top of his equipment list.",
               why: "A clear, sensible call, made without the people affected." },
             { id: "c", tier: "weak",
               text: "Ask Tom to pack nothing until everyone has had a full meeting about equipment next week.",
-              outcome: "The sensors sit unused, and Tom has nothing ready to hand over when the team leaves.",
+              outcome: "Tom packs nothing and waits for next week's meeting, so the sensors stay where they are. When the team gathers to leave, Tom is asked for the equipment list and has nothing ready to hand over. He stays behind to count the sensors while the others walk down to the boat.",
               why: "Delays a small decision far too long." }
           ] },
 
@@ -789,15 +796,15 @@ window.SFL_CONTENT = {
           options: [
             { id: "a", tier: "recommended",
               text: "Help Maya contact the council and the village this afternoon to agree who will look after the seeds, and write the arrangement into the handover.",
-              outcome: "The village school offers to store and plant the seeds with the council's help. Maya is thrilled.",
+              outcome: "You and Maya call the council and walk down to the village school that afternoon. The school offers to store the seeds and plant them with the children, and the council agrees to help. Maya writes the arrangement into the handover, labels every bag with its planting month, and carries the boxes to the school herself.",
               why: "Turns a loose end into an agreed handover with the people who will stay on the island." },
             { id: "b", tier: "acceptable",
               text: "Ask Maya to store the seeds as well as she can, and flag the question in the council report.",
-              outcome: "The seeds are stored for now. Maya is satisfied, but unsure what will happen to them.",
+              outcome: "Maya stores the seeds in the cool room as well as she can, and the question of who will plant them goes into the council report. Before leaving she writes her phone number on the boxes, and asks you twice whether the council is likely to read that part of the report.",
               why: "Protects the seeds for now, but leaves the key question open." },
             { id: "c", tier: "weak",
               text: "Tell Maya the extra seeds are outside the project's scope, so she should stop collecting.",
-              outcome: "Maya stops, frustrated that the seeds may go to waste.",
+              outcome: "Maya stops collecting. She leaves the full bags stacked in a corner of the base. Before the team leaves she looks through them once more, then closes the door on them.",
               why: "Dismisses useful work and a real risk." }
           ] }
       ],
@@ -806,10 +813,10 @@ window.SFL_CONTENT = {
         { id: "d3-r-daniel", person: "daniel",
           prompt: "How do you think Daniel experienced today?",
           truth_from_support: { support: "d3-daniel", recommended: "positive", acceptable: "neutral", weak: "positive" },
-          why: "Daniel was happy with a shared wording (positive), felt undersold with Maya's wording (neutral), and was pleased when his own wording was simply imposed (positive), even though that was a weak choice for the team.",
+          why: "Daniel read the shared wording aloud to the team (positive). With Maya's cautious wording, he looked for somewhere else to mention his results (neutral). When his own wording was simply imposed, he finished early and sent it with a note about how well the colony had done (positive), even though that was a weak choice for the team.",
           when_mismatched: {
             truth_from_support: { support: "d3-daniel", recommended: "neutral", acceptable: "neutral", weak: "negative" },
-            why: "Daniel spent the day away from the report he was best placed to write, so even when his point got through he was only partly satisfied."
+            why: "Daniel spent the day away from the report he was best placed to write, so even when his point got through he was only partly satisfied: he still marked up his own copy, or asked which words were used (neutral). When his point was ignored, he left without joining the others (negative)."
           } },
         { id: "d3-r-priya", person: "priya",
           prompt: "How does Priya feel about the talks with the tour operator?",
@@ -818,7 +825,7 @@ window.SFL_CONTENT = {
         { id: "d3-r-tom", person: "tom",
           prompt: "How do you think Tom experienced today?",
           truth_from_support: { support: "d3-tom", recommended: "positive", acceptable: "neutral", weak: "negative" },
-          why: "Tom was glad not to be stuck in the middle (positive), simply followed a decision (neutral), or had nothing ready to hand over (negative)." },
+          why: "Tom labelled everything and handed over a tidy list (positive), wrote \"as instructed\" on a decision made without him (neutral), or had nothing ready when the team left (negative)." },
         { id: "d3-r-maya", person: "maya",
           prompt: "How certain is Maya that her seeds will be put to good use?",
           options: [
@@ -828,7 +835,7 @@ window.SFL_CONTENT = {
             { id: "idk",      label: "I don't know" }
           ],
           truth_from_support: { support: "d3-maya", recommended: "positive", acceptable: "neutral", weak: "negative" },
-          why: "An agreed handover made her certain; storing them without a plan left her unsure; being told to stop made her doubtful." }
+          why: "With an agreed handover, Maya carried the seeds to the school herself (certain). Stored without a plan, she wrote her number on the boxes and asked twice whether the council would read the report (unsure). Told to stop, she closed the door on the full bags (doubtful)." }
       ]
     }
   ]

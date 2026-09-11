@@ -15,7 +15,9 @@
      run.days[i].reasons         { personId: reasonId } last reason given
      run.days[i].support         { supportId: optionId }
      run.days[i].reflect         { reflectId: optionId }
-     run.late                    { key: true } answers given after time ran out
+     run.days[i].late            { key: true } answers given after time ran out
+                                 ('assign' = Continue on Assign pressed late)
+     run.late                    { onboarding: true } the same, for Onboarding
    ========================================================================== */
 var MARKING = (function () {
 
@@ -32,7 +34,9 @@ var MARKING = (function () {
      Uses the assignment at the END of Assign. Before Assign has happened
      (or on a day without an Assign phase) the starting positions count. */
   function currentStation(day, dayRun, personId) {
-    if (dayRun.assignment && dayRun.assignment[personId]) return dayRun.assignment[personId];
+    /* null means "not placed" (bumped off a station in Assign), which must not
+       fall back to the starting station. */
+    if (dayRun.assignment && Object.prototype.hasOwnProperty.call(dayRun.assignment, personId)) return dayRun.assignment[personId] || null;
     return day.start_assignment ? day.start_assignment[personId] : null;
   }
   function isMatched(day, dayRun, personId) {
@@ -157,7 +161,8 @@ var MARKING = (function () {
       of += sc.placement_points + sc.reason_points;
       items.push({ person: person, station: byId(day.stations, st), goodStations: person.good_stations,
                    good: good, reason: byId(content.rules.reasons, reasonId), consistent: consistent,
-                   points: pPlace + pReason, of: sc.placement_points + sc.reason_points });
+                   points: pPlace + pReason, of: sc.placement_points + sc.reason_points,
+                   late: !!run_late(dayRun, 'assign') });
     }
     return { score: points(score), of: points(of), items: items };
   }

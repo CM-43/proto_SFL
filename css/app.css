@@ -279,6 +279,7 @@
 .pc-text { display: flex; flex-direction: column; min-width: 0; }
 .pc-name { font-weight: 600; font-size: max(13px, 0.88em); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pc-role { font-size: 12px; color: var(--on-dark-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-unplaced { color: #fcd34d; font-weight: 600; }
 .pc-tick { margin-left: auto; color: var(--timer-green); font-weight: 700; }
 .is-pressable { cursor: pointer; }
 .person-card.is-pressable:hover { border-color: var(--accent); background: #323e52; }
@@ -370,7 +371,21 @@
 .plain-card h2 { font-size: clamp(17px, 1.5vw, 22px); line-height: 1.35; margin-bottom: var(--space-4); }
 .plain-kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-light-muted); margin-bottom: var(--space-2); }
 .plain-text { line-height: 1.65; max-width: 70ch; }
+.rich-text p { margin: 0 0 var(--space-3); }
+.rich-text h3 { font-size: max(15px, 1em); font-weight: 700; margin: var(--space-5) 0 var(--space-1); }
+.rich-text h3:first-child { margin-top: 0; font-size: max(16px, 1.08em); }
+.rich-text ul { margin: 0 0 var(--space-3); padding-left: 22px; }
+.rich-text li { margin-bottom: 2px; }
 .plain-hint { color: var(--on-light-muted); margin: -8px 0 var(--space-4); font-size: max(13px, 0.86em); }
+/* On a wide window the reading column (860px at most) stays centred in the
+   card instead of sitting against the left edge with empty space to its
+   right. The side padding grows to take up the spare width, so everything in
+   the column keeps the same left edge. */
+.plain-scroll {
+  padding-left: max(clamp(18px, 4%, 48px), calc((100% - 860px) / 2));
+  padding-right: max(clamp(18px, 4%, 48px), calc((100% - 860px) / 2));
+}
+.plain-scroll .plain-text, .plain-scroll .rank-list, .plain-scroll .qa-list, .plain-scroll .choice-list { max-width: none; }
 .plain-actions { flex: 0 0 auto; display: flex; justify-content: flex-end; padding: var(--space-3) var(--space-5) var(--space-5); }
 .plain-actions .g-continue { position: static; }
 .reflect-card .notes { left: auto; right: var(--space-5); bottom: 72px; }
@@ -411,6 +426,11 @@
 .choice.is-chosen .radio::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--accent); }
 .choice .label { line-height: 1.45; }
 .choice { padding: 10px 12px; }
+
+/* A popup that is already open and is only being redrawn (after a click
+   inside it) does not replay its opening animation. Without this the whole
+   screen appears to flash each time an option is chosen. */
+.modal-backdrop.is-steady, .modal-backdrop.is-steady .modal { animation: none; }
 
 /* ==== 9. SFL: POPUPS THAT HOLD A LIST ======================================
    The house popup is a fixed 600 x 216. Popups carrying a list of questions

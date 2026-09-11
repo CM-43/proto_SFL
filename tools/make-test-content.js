@@ -5,7 +5,7 @@ const c=JSON.parse(JSON.stringify(window.SFL_CONTENT));
 c.title="Every Shape Test";
 c.time_limit_minutes=2;
 c.results_mode="demo";
-Object.assign(c.rules,{support_order:"any",confirm_before_support:false,show_support_outcomes:false,ask_reason_for_unmoved:true,notes_in_reflect:true,notes_include_onboarding:false,can_skip_explore_points:false});
+Object.assign(c.rules,{support_order:"any",confirm_before_support:false,show_support_outcomes:false,ask_reason_for_unmoved:true,notes_in_reflect:true,notes_include_onboarding:false,can_skip_explore_points:false,occupied_station:"swap"});
 c.onboarding.questions=c.onboarding.questions.slice(0,3).map((q,i)=>Object.assign(q,{recommended_position:i+1}));
 const [d1,d2,d3]=c.days;
 // Day A: 2 people, 2 stations, no explore phase, 2-option support

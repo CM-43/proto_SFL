@@ -115,6 +115,7 @@ var CONTENT = (function () {
       if (need(r, 'reflect_default_options', 'rules', 'array')) uniqueIds(r.reflect_default_options, 'rules > reflect_default_options');
       need(r, 'reflect_idk_option_id', 'rules', 'string');
       if (r.support_order !== 'fixed' && r.support_order !== 'any') err('rules > "support_order" must be "fixed" or "any".');
+      if (r.occupied_station !== 'bump' && r.occupied_station !== 'swap') err('rules > "occupied_station" must be "bump" or "swap".');
       ['confirm_before_support', 'show_support_outcomes', 'ask_reason_for_unmoved', 'notes_in_reflect',
        'notes_include_onboarding', 'can_skip_explore_points'].forEach(function (k) {
         if (typeof r[k] !== 'boolean') err('rules > "' + k + '" must be true or false (no quote marks).');

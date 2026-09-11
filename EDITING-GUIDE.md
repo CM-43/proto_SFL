@@ -34,6 +34,22 @@ Find the text and change what is inside the quotes. All button and screen words 
 
 `continue: "Continue",` → `continue: "Next",`
 
+### Lay out the project brief (headings and bullet points)
+The brief (`context:` under `onboarding:`) can use three simple marks, the same way the old SFL brief did. Inside the quote marks, `\n` is a line break.
+- `\n\n` (a blank line) starts a new paragraph.
+- `**Background**` on a line of its own becomes a heading.
+- A line starting with `- ` becomes a bullet point.
+
+`"**Stakeholders**\n- The island council, which funds the project\n- The fishing village on the bay"`
+
+shows on screen as:
+
+> **Stakeholders**
+> - The island council, which funds the project
+> - The fishing village on the bay
+
+These marks work in the brief only. Everywhere else, `\n` is simply a line break.
+
 ### Change the time limit
 `time_limit_minutes: 30,` → `time_limit_minutes: 35,`
 
@@ -49,6 +65,7 @@ Everything in the `rules:` section is a switch. For example, if candidates say t
 
 | Rule | What it does | Open question |
 |---|---|---|
+| `occupied_station` | What happens when someone is dropped onto a station that already has a person. `"bump"` = the person already there goes back to the top strip as "Not placed" and must be placed again (only the person moved is asked why). `"swap"` = the two swap, and both are asked why | SQ17 |
 | `support_order` | `"fixed"` = team members glow one at a time, in order. `"any"` = all glow at once | SQ23 |
 | `confirm_before_support` | Ask "Read X's message?" before showing it | reported |
 | `show_support_outcomes` | Show what happened after each Support answer | SQ13 |
@@ -91,7 +108,7 @@ Everything is in `scoring:`. Examples:
 **Support.** Each message belongs to one `person`. Each option has:
 - `text`: what the candidate reads
 - `tier`: exactly one `"recommended"`, the rest `"acceptable"` or `"weak"`
-- `outcome`: what happened next
+- `outcome`: what happened next. Describe what the person does and says afterwards, without naming how they feel ("she stays behind to finish it", not "she is pleased"). Reflect asks the candidate to read the feeling from these outcomes, so each one needs a clue that points one way
 - `why`: the explanation shown in the results
 
 **Reflect.** The correct answer can follow what happened in Support:
